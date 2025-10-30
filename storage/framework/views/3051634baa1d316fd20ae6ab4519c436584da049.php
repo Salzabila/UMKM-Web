@@ -320,12 +320,42 @@ unset($__errorArgs, $__bag); ?>
                             </div>
                         </div>
 
-                        <div id="existing-barcode-section" class="form-section" style="display: none; background: rgba(23, 162, 184, 0.1); border: 2px solid rgba(23, 162, 184, 0.3);">
+                        <div class="form-section">
                             <div class="section-title">
-                                <i class="bi bi-qr-code text-info"></i>
-                                Barcode Pabrikan
+                                <i class="bi bi-tags"></i>
+                                Informasi Produk
                             </div>
                             <div class="mb-3">
+                                <label for="nama" class="form-label">
+                                    <i class="bi bi-box text-success"></i>
+                                    Nama Barang <span class="required">*</span>
+                                </label>
+                                <input type="text" class="form-control <?php $__errorArgs = ['nama'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>" id="nama" name="nama" value="<?php echo e(old('nama')); ?>" required autofocus placeholder="Masukkan nama barang...">
+                                <?php $__errorArgs = ['nama'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                    <div class="invalid-feedback"><?php echo e($message); ?></div>
+                                <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            </div>
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" value="1" id="use_existing_barcode" name="use_existing_barcode" <?php echo e(old('use_existing_barcode') ? 'checked' : ''); ?> onchange="toggleExistingBarcodeSection()">
+                                <label class="form-check-label fw-bold" for="use_existing_barcode" style="font-size: 0.95rem;">
+                                    <i class="bi bi-qr-code text-info"></i> Barcode Existing
+                                </label>
+                            </div>
+                            <div id="existing-barcode-section" class="expired-section" style="display: none; background: rgba(23, 162, 184, 0.1); border: 2px solid rgba(23, 162, 184, 0.3);">
                                 <label for="existing_barcode" class="form-label">
                                     <i class="bi bi-scanner text-info"></i>
                                     Pindai Barcode <span class="required">*</span>
@@ -349,53 +379,15 @@ if (isset($__messageOriginal)) { $message = $__messageOriginal; }
 endif;
 unset($__errorArgs, $__bag); ?>
                                 <small class="text-muted mt-2 d-block"><i class="bi bi-info-circle"></i> Gunakan scanner barcode untuk membaca barcode pabrikan</small>
-                            </div>
-                            <div id="barcode-success-message" class="alert alert-success alert-dismissible fade" role="alert" style="display: none;">
-                                <i class="bi bi-check-circle"></i> <strong>BARCODE BERHASIL DI PINDAI DAN DI SIMPAN</strong>
-                                <div class="mt-2">
-                                    <strong>Nomor Barcode:</strong> <span id="barcode-display" class="badge bg-info"></span>
+                                <div id="barcode-success-message" class="alert alert-success alert-dismissible fade mt-3" role="alert" style="display: none;">
+                                    <i class="bi bi-check-circle"></i> <strong>BARCODE BERHASIL DI PINDAI DAN DI SIMPAN</strong>
+                                    <div class="mt-2">
+                                        <strong>Nomor Barcode:</strong> <span id="barcode-display" class="badge bg-info"></span>
+                                    </div>
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                                 </div>
-                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                            </div>
-                        </div>
-
-                        <div class="form-section">
-                            <div class="section-title">
-                                <i class="bi bi-tags"></i>
-                                Jenis & Masa Berlaku
                             </div>
                             <div class="mb-3">
-                                <div class="flex-grow-1">
-                                        <label for="nama" class="form-label">
-                                            <i class="bi bi-box text-success"></i>
-                                            Nama Barang <span class="required">*</span>
-                                        </label>
-                                        <input type="text" class="form-control <?php $__errorArgs = ['nama'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>" id="nama" name="nama" value="<?php echo e(old('nama')); ?>" required autofocus placeholder="Masukkan nama barang...">
-                                        <?php $__errorArgs = ['nama'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                            <div class="invalid-feedback"><?php echo e($message); ?></div>
-                                        <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                                    </div>
-                                    <div class="form-check mt-4">
-                                        <input class="form-check-input" type="checkbox" value="1" id="use_existing_barcode" name="use_existing_barcode" <?php echo e(old('use_existing_barcode') ? 'checked' : ''); ?> onchange="toggleExistingBarcodeSection()">
-                                        <label class="form-check-label fw-bold" for="use_existing_barcode" style="font-size: 0.95rem;">
-                                            <i class="bi bi-qr-code text-info"></i> Barcode Existing
-                                        </label>
-                                    </div>
-
                                 <label for="type" class="form-label">
                                     <i class="bi bi-collection text-success"></i>
                                     Jenis Barang <span class="required">*</span>
