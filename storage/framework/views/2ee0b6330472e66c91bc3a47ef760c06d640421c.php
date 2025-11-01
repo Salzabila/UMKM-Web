@@ -257,6 +257,38 @@
                         <?php echo csrf_field(); ?>
 
                         <div class="mb-4">
+                            <label for="barcode" class="form-label">
+                                <i class="bi bi-upc-scan text-success"></i>
+                                Barcode (Opsional)
+                            </label>
+                            <input type="text" class="form-control <?php $__errorArgs = ['barcode'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>"
+                                   id="barcode" name="barcode"
+                                   value="<?php echo e(old('barcode')); ?>"
+                                   placeholder="Scan atau masukkan barcode...">
+                            <?php $__errorArgs = ['barcode'];
+$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
+if ($__bag->has($__errorArgs[0])) :
+if (isset($message)) { $__messageOriginal = $message; }
+$message = $__bag->first($__errorArgs[0]); ?>
+                                <div class="invalid-feedback"><?php echo e($message); ?></div>
+                            <?php unset($message);
+if (isset($__messageOriginal)) { $message = $__messageOriginal; }
+endif;
+unset($__errorArgs, $__bag); ?>
+                            <small class="text-muted mt-2 d-block">
+                                <i class="bi bi-info-circle"></i>
+                                Barcode untuk batch restock ini (jika berbeda)
+                            </small>
+                        </div>
+
+                        <div class="mb-4">
                             <label for="stok_tambahan" class="form-label">
                                 <i class="bi bi-plus-circle text-success"></i>
                                 Jumlah Stok Tambahan <span class="required">*</span>
@@ -423,38 +455,6 @@ unset($__errorArgs, $__bag); ?>
                                     Kosongkan untuk tetap menggunakan harga jual saat ini
                                 </small>
                             </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="barcode" class="form-label">
-                                <i class="bi bi-upc-scan text-success"></i>
-                                Barcode (Opsional)
-                            </label>
-                            <input type="text" class="form-control <?php $__errorArgs = ['barcode'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?> is-invalid <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>"
-                                   id="barcode" name="barcode"
-                                   value="<?php echo e(old('barcode')); ?>"
-                                   placeholder="Scan atau masukkan barcode...">
-                            <?php $__errorArgs = ['barcode'];
-$__bag = $errors->getBag($__errorArgs[1] ?? 'default');
-if ($__bag->has($__errorArgs[0])) :
-if (isset($message)) { $__messageOriginal = $message; }
-$message = $__bag->first($__errorArgs[0]); ?>
-                                <div class="invalid-feedback"><?php echo e($message); ?></div>
-                            <?php unset($message);
-if (isset($__messageOriginal)) { $message = $__messageOriginal; }
-endif;
-unset($__errorArgs, $__bag); ?>
-                            <small class="text-muted mt-2 d-block">
-                                <i class="bi bi-info-circle"></i>
-                                Barcode untuk batch restock ini (jika berbeda)
-                            </small>
                         </div>
 
                         <div class="mb-4">

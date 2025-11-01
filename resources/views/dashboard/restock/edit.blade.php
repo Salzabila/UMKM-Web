@@ -257,6 +257,24 @@
                         @csrf
 
                         <div class="mb-4">
+                            <label for="barcode" class="form-label">
+                                <i class="bi bi-upc-scan text-success"></i>
+                                Barcode (Opsional)
+                            </label>
+                            <input type="text" class="form-control @error('barcode') is-invalid @enderror"
+                                   id="barcode" name="barcode"
+                                   value="{{ old('barcode') }}"
+                                   placeholder="Scan atau masukkan barcode...">
+                            @error('barcode')
+                                <div class="invalid-feedback">{{ $message }}</div>
+                            @enderror
+                            <small class="text-muted mt-2 d-block">
+                                <i class="bi bi-info-circle"></i>
+                                Barcode untuk batch restock ini (jika berbeda)
+                            </small>
+                        </div>
+
+                        <div class="mb-4">
                             <label for="stok_tambahan" class="form-label">
                                 <i class="bi bi-plus-circle text-success"></i>
                                 Jumlah Stok Tambahan <span class="required">*</span>
@@ -353,24 +371,6 @@
                                     Kosongkan untuk tetap menggunakan harga jual saat ini
                                 </small>
                             </div>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="barcode" class="form-label">
-                                <i class="bi bi-upc-scan text-success"></i>
-                                Barcode (Opsional)
-                            </label>
-                            <input type="text" class="form-control @error('barcode') is-invalid @enderror"
-                                   id="barcode" name="barcode"
-                                   value="{{ old('barcode') }}"
-                                   placeholder="Scan atau masukkan barcode...">
-                            @error('barcode')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <small class="text-muted mt-2 d-block">
-                                <i class="bi bi-info-circle"></i>
-                                Barcode untuk batch restock ini (jika berbeda)
-                            </small>
                         </div>
 
                         <div class="mb-4">
