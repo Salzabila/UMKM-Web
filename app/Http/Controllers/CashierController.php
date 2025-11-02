@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Good;
 use App\Models\Transaction;
 use App\Models\Order;
+use Illuminate\Support\Facades\DB;
 use PDF;
 use Illuminate\Support\Facades\Log;
 
@@ -178,11 +179,15 @@ class CashierController extends Controller
                 // Update existing order quantity
                 $newQty = $existingOrder->qty + $request->qty;
                 
-                // Check stock
-                if ($barang->stok < $newQty) {
-                    Log::warning('Insufficient stock', ['available' => $barang->stok, 'requested' => $newQty]);
-                    return redirect()->back()->with('error', 'Stok tidak mencukupi! Stok tersedia: ' . $barang->stok . ', sudah di cart: ' . $existingOrder->qty);
+                // Check stock (available stock + already in cart)
+                $availableStock = $barang->stok + $existingOrder->qty;
+                if ($availableStock < $newQty) {
+                    Log::warning('Insufficient stock', ['available' => $availableStock, 'requested' => $newQty]);
+                    return redirect()->back()->with('error', 'Stok tidak mencukupi! Stok tersedia: ' . $availableStock);
                 }
+                
+                // Calculate stock difference to deduct
+                $qtyDifference = $request->qty; // Only the new quantity being added
 
                 // Get current transaction total to determine tebus murah eligibility
                 $currentOrders = Order::where('no_nota', $request->no_nota)->get();
@@ -231,6 +236,10 @@ class CashierController extends Controller
                     'subtotal' => $newSubtotal,
                     'price' => $unitPrice,
                 ]);
+                
+                // Reduce stock by the additional quantity
+                $barang->decrement('stok', $qtyDifference);
+                Log::info('Stock reduced:', ['product_id' => $barang->id, 'qty_reduced' => $qtyDifference, 'remaining_stock' => $barang->fresh()->stok]);
 
                 Log::info('Order updated successfully:', ['order_id' => $existingOrder->id, 'new_qty' => $newQty, 'new_subtotal' => $newSubtotal]);
 
@@ -299,6 +308,10 @@ class CashierController extends Controller
                     'subtotal' => $subtotal,
                     'price' => $unitPrice,
                 ]);
+                
+                // Reduce stock
+                $barang->decrement('stok', $qty);
+                Log::info('Stock reduced for new order:', ['product_id' => $barang->id, 'qty_reduced' => $qty, 'remaining_stock' => $barang->fresh()->stok]);
 
                 Log::info('New order created successfully:', ['order_id' => $newOrder->id, 'qty' => $qty, 'subtotal' => $subtotal]);
 
@@ -374,12 +387,17 @@ class CashierController extends Controller
                 // Update existing order quantity
                 $newQty = $existingOrder->qty + $qty;
                 
-                if ($barang->stok < $newQty) {
+                // Check stock (available stock + already in cart)
+                $availableStock = $barang->stok + $existingOrder->qty;
+                if ($availableStock < $newQty) {
                     return response()->json([
                         'success' => false,
-                        'message' => 'Stok tidak mencukupi! Stok tersedia: ' . $barang->stok . ', sudah di cart: ' . $existingOrder->qty
+                        'message' => 'Stok tidak mencukupi! Stok tersedia: ' . $availableStock
                     ]);
                 }
+                
+                // Calculate stock difference to deduct
+                $qtyDifference = $qty; // Only the new quantity being added
 
                 // Get current transaction total to determine tebus murah eligibility
                 $currentOrders = Order::where('no_nota', $no_nota)->get();
@@ -409,6 +427,10 @@ class CashierController extends Controller
                     'subtotal' => $newSubtotal,
                     'price' => $unitPrice,
                 ]);
+                
+                // Reduce stock by the additional quantity
+                $barang->decrement('stok', $qtyDifference);
+                Log::info('Stock reduced from barcode scan:', ['product_id' => $barang->id, 'qty_reduced' => $qtyDifference, 'remaining_stock' => $barang->fresh()->stok]);
 
                 Log::info('Order updated successfully', ['order_id' => $existingOrder->id, 'barcode' => $barcode, 'new_qty' => $newQty]);
 
@@ -460,6 +482,10 @@ class CashierController extends Controller
                     'subtotal' => $subtotal,
                     'price' => $unitPrice,
                 ]);
+                
+                // Reduce stock
+                $barang->decrement('stok', $qty);
+                Log::info('Stock reduced for new order from barcode:', ['product_id' => $barang->id, 'qty_reduced' => $qty, 'remaining_stock' => $barang->fresh()->stok]);
 
                 Log::info('Order created successfully', ['order_id' => $order->id, 'barcode' => $barcode]);
 
@@ -499,13 +525,18 @@ class CashierController extends Controller
             ]);
 
             $newQty = $request->qty;
+            $oldQty = $order->qty;
             $barang = Good::findOrFail($order->good_id);
 
-            // Check stock
-            if ($barang->stok < $newQty) {
+            // Calculate quantity difference
+            $qtyDifference = $newQty - $oldQty;
+            
+            // Check stock (current stock + old quantity in cart)
+            $availableStock = $barang->stok + $oldQty;
+            if ($availableStock < $newQty) {
                 return response()->json([
                     'success' => false,
-                    'message' => 'Stok tidak mencukupi! Stok tersedia: ' . $barang->stok
+                    'message' => 'Stok tidak mencukupi! Stok tersedia: ' . $availableStock
                 ]);
             }
 
@@ -537,6 +568,17 @@ class CashierController extends Controller
                 'subtotal' => $newSubtotal,
                 'price' => $unitPrice,
             ]);
+            
+            // Update stock based on quantity difference
+            if ($qtyDifference > 0) {
+                // Quantity increased, reduce stock
+                $barang->decrement('stok', $qtyDifference);
+                Log::info('Stock reduced after qty increase:', ['product_id' => $barang->id, 'qty_reduced' => $qtyDifference, 'new_stock' => $barang->fresh()->stok]);
+            } elseif ($qtyDifference < 0) {
+                // Quantity decreased, restore stock
+                $barang->increment('stok', abs($qtyDifference));
+                Log::info('Stock restored after qty decrease:', ['product_id' => $barang->id, 'qty_restored' => abs($qtyDifference), 'new_stock' => $barang->fresh()->stok]);
+            }
 
             // Calculate new total
             $allOrders = Order::where('no_nota', $order->no_nota)->get();
@@ -629,7 +671,7 @@ class CashierController extends Controller
                     $newStock = $oldStock - $order->qty;
                     
                     // Update stok menggunakan raw query
-                    \DB::table('goods')
+                    DB::table('goods')
                        ->where('id', $good->id)
                        ->update(['stok' => $newStock]);
                     
@@ -759,11 +801,22 @@ class CashierController extends Controller
     {
         try {
             $no_nota = $order->no_nota;
+            $good_id = $order->good_id;
+            $qty = $order->qty;
+            
+            // Delete the order
             $order->delete();
+            
+            // Return stock to the product
+            $barang = Good::find($good_id);
+            if ($barang) {
+                $barang->increment('stok', $qty);
+                Log::info('Stock restored after order deletion:', ['product_id' => $good_id, 'qty_restored' => $qty, 'new_stock' => $barang->fresh()->stok]);
+            }
             
             return response()->json([
                 'success' => true,
-                'message' => 'Item berhasil dihapus dari pesanan!'
+                'message' => 'Item berhasil dihapus dari pesanan dan stok dikembalikan!'
             ]);
             
         } catch (\Exception $e) {
